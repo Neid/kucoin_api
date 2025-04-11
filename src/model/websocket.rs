@@ -20,6 +20,7 @@ pub struct InstanceServer {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum WSTopic {
     Ticker(Vec<String>),
+    FutTicker(Vec<String>),
     AllTicker,
     Snapshot(String),
     OrderBook(Vec<String>),
@@ -58,6 +59,7 @@ pub enum KucoinWebsocketMsg {
     Pong,
     Binary(Vec<u8>),
     TickerMsg(WSResp<SymbolTicker>),
+    FutTickerMsg(WSResp<FutSymbolTicker>),
     AllTickerMsg(WSResp<SymbolTicker>),
     SnapshotMsg(WSResp<Snapshot>),
     OrderBookMsg(WSResp<Level2>),
@@ -128,6 +130,22 @@ pub struct SymbolTicker {
     pub price: String,
     pub best_ask_size: String,
     pub best_bid: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FutSymbolTicker {
+    pub symbol: String,
+    pub sequence: u64,
+    pub side: String,
+    pub price: String,
+    pub size: u64,
+    pub trade_id: String,
+    pub best_bid_size: f64,
+    pub best_bid_price: String,
+    pub best_ask_price: String,
+    pub best_ask_size: f64,
+    pub ts: u64,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
