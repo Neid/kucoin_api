@@ -36,6 +36,7 @@ impl Credentials {
 #[derive(Debug, Clone)]
 pub enum KucoinEnv {
     Live,
+    FutLive,
     Sandbox,
 }
 
@@ -57,6 +58,7 @@ impl Kucoin {
             .build()?;
         let prefix = match environment {
             KucoinEnv::Live => String::from("https://api.kucoin.com"),
+            KucoinEnv::FutLive => String::from("https://api-futures.kucoin.com"),
             KucoinEnv::Sandbox => String::from("https://openapi-sandbox.kucoin.com"),
         };
         Ok(Kucoin {
