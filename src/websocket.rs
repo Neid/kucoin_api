@@ -66,7 +66,7 @@ impl KucoinWebsocket {
             return Err(APIError::Other("invalid url".to_string()));
         }
         let endpoint = endpoint.unwrap();
-        println!("Kucoin endpoint: {}", endpoint);
+        //println!("Kucoin endpoint: {}", endpoint);
 
         let (ws_stream, _) = connect_async(endpoint).await?;
 
@@ -75,7 +75,7 @@ impl KucoinWebsocket {
 
         for topic in ws_topic.iter() {
             let sub = Subscribe::new(topic);
-            println!("Subscribing to topic: {}", sub.topic);
+            //println!("Subscribing to topic: {}", sub.topic);
 
             sink_mutex
                 .lock()
