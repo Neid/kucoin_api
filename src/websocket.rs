@@ -66,6 +66,7 @@ impl KucoinWebsocket {
             return Err(APIError::Other("invalid url".to_string()));
         }
         let endpoint = endpoint.unwrap();
+        println!("Kucoin endpoint: {}", endpoint);
 
         let (ws_stream, _) = connect_async(endpoint).await?;
 
@@ -74,6 +75,7 @@ impl KucoinWebsocket {
 
         for topic in ws_topic.iter() {
             let sub = Subscribe::new(topic);
+            println!("Subscribing to topic: {}", sub.topic);
 
             sink_mutex
                 .lock()
@@ -263,9 +265,35 @@ fn parse_message(msg: Message) -> Result<KucoinWebsocketMsg, APIError> {
                             + &serde_json::to_string_pretty(&msg).unwrap(),
                     ))
                 }
+            } else if msg.contains("\"topic\":\"/contractMarket/ticker") {
+                if msg.contains("\"subject\":\"ticker\"") {
+                    Ok(KucoinWebsocketMsg::FutTickerMsg(serde_json::from_str(&msg)?))
+                }
+                else if msg.contains("\"subject\":\"snapshot\"") {
+                    Ok(KucoinWebsocketMsg::SnapshotMsg(serde_json::from_str(&msg)?))
+                } else if msg.contains("\"subject\":\"l2update\"") {
+                    Ok(KucoinWebsocketMsg::OrderBookMsg(serde_json::from_str(&msg)?))
+                } else if msg.contains("\"subject\":\"l3received\"") {
+                    Ok(KucoinWebsocketMsg::Level3ReceivedMsg(
+                        serde_json::from_str(&msg)?,
+                    ))
+                } else if msg.contains("\"subject\":\"l3open\"") {
+                    Ok(KucoinWebsocketMsg::Level3OpenMsg(serde_json::from_str(&msg)?))
+                } else if msg.contains("\"subject\":\"l3done\"") {
+                    Ok(KucoinWebsocketMsg::Level3DoneMsg(serde_json::from_str(&msg)?))
+                } else if msg.contains("\"subject\":\"l3match\"") {
+                    Ok(KucoinWebsocketMsg::Level3MatchMsg(serde_json::from_str(&msg)?))
+                } else if msg.contains("\"subject\":\"l3change\"") {
+                    Ok(KucoinWebsocketMsg::Level3ChangeMsg(serde_json::from_str(&msg)?))
+                } else {
+                    Err(APIError::Other(
+                        "Unrecognised message from contractMarket\n".to_string()
+                            + &serde_json::to_string_pretty(&msg).unwrap(),
+                    ))
+                }
             } else {
                 Err(APIError::Other(
-                    "No KucoinWebSocketMsg type to parse\n".to_string(),
+                    format!("No KucoinWebSocketMsg type to parse:\n{}", msg)
                 ))
             }
         }
@@ -355,6 +383,7 @@ impl Subscribe {
         let mut private_channel = false;
         let topic = match topic_type {
             WSTopic::Ticker(ref symbols) => format!("/market/ticker:{}", symbols.join(",")),
+            WSTopic::FutTicker(ref symbols) => format!("/contractMarket/ticker:{}", symbols.join(",")),
             WSTopic::AllTicker => String::from("/market/ticker:all"),
             WSTopic::Snapshot(ref symbol) => format!("/market/snapshot:{}", symbol),
             WSTopic::OrderBook(ref symbols) => format!("/market/level2:{}", symbols.join(",")),

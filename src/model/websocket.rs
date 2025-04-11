@@ -145,7 +145,7 @@ pub struct FutSymbolTicker {
     pub best_bid_price: String,
     pub best_ask_price: String,
     pub best_ask_size: f64,
-    pub ts: u64,
+    pub ts: i64,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
